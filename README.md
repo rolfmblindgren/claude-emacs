@@ -13,7 +13,7 @@ Legg til i `~/Library/Application Support/Claude/claude_desktop_config.json`:
   "mcpServers": {
     "emacs": {
       "command": "uvx",
-      "args": ["--from", "git+https://github.com/roffe/claude-emacs", "claude-emacs"]
+      "args": ["--from", "git+https://github.com/rolfmblindgren/claude-emacs", "claude-emacs"]
     }
   }
 }

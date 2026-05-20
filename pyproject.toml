@@ -16,7 +16,7 @@ keywords = ["mcp", "emacs", "claude", "ai"]
 claude-emacs = "claude_emacs.server:main"
 
 [project.urls]
-Repository = "https://github.com/roffe/claude-emacs"
+Repository = "https://github.com/rolfmblindgren/claude-emacs"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/claude_emacs"]
