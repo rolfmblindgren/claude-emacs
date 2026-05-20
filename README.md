@@ -1,5 +1,12 @@
 # claude-emacs
 
+[![Python](https://img.shields.io/badge/python-3.10%2B-blue?logo=python&logoColor=white)](https://www.python.org/)
+[![MCP](https://img.shields.io/badge/MCP-server-blueviolet?logo=anthropic&logoColor=white)](https://modelcontextprotocol.io)
+[![Emacs](https://img.shields.io/badge/GNU%20Emacs-29%2B-7F5AB6?logo=gnuemacs&logoColor=white)](https://www.gnu.org/software/emacs/)
+[![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
+[![macOS](https://img.shields.io/badge/macOS-only-lightgrey?logo=apple&logoColor=white)](https://www.apple.com/macos/)
+[![Built with Claude](https://img.shields.io/badge/built%20with-Claude-orange?logo=anthropic&logoColor=white)](https://claude.ai)
+
 MCP-server som kobler [Claude Desktop](https://claude.ai/download) til GNU Emacs på Mac via `emacsclient`.
 
 ## Installasjon
@@ -28,7 +35,7 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 ### Alternativ 2 — pipx
 
 ```sh
-pipx install git+https://github.com/roffe/claude-emacs
+pipx install git+https://github.com/rolfmblindgren/claude-emacs
 ```
 
 Legg til i `claude_desktop_config.json`:
@@ -46,7 +53,7 @@ Legg til i `claude_desktop_config.json`:
 ### Alternativ 3 — manuelt (klon + venv)
 
 ```sh
-git clone https://github.com/roffe/claude-emacs ~/src/claude-emacs
+git clone https://github.com/rolfmblindgren/claude-emacs ~/src/claude-emacs
 cd ~/src/claude-emacs
 ./install.sh
 ```
