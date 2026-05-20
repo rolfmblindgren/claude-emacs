@@ -4,7 +4,7 @@
 [![MCP](https://img.shields.io/badge/MCP-server-blueviolet?logo=anthropic&logoColor=white)](https://modelcontextprotocol.io)
 [![Emacs](https://img.shields.io/badge/GNU%20Emacs-29%2B-7F5AB6?logo=gnuemacs&logoColor=white)](https://www.gnu.org/software/emacs/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
-[![macOS](https://img.shields.io/badge/macOS-only-lightgrey?logo=apple&logoColor=white)](https://www.apple.com/macos/)
+[![Platform](https://img.shields.io/badge/platform-macOS%20%7C%20maybe%20others-lightgrey)](https://github.com/rolfmblindgren/claude-emacs)
 [![Built with Claude](https://img.shields.io/badge/built%20with-Claude-orange?logo=anthropic&logoColor=white)](https://claude.ai)
 
 MCP-server som kobler [Claude Desktop](https://claude.ai/download) til GNU Emacs på Mac via `emacsclient`.
