@@ -3,23 +3,24 @@ requires = ["setuptools>=68"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "claude-emacs"
+name = "emacs-mcp-bridge"
 version = "0.1.0"
 description = "Lokal MCP-server som kobler AI-klienter til GNU Emacs"
 readme = "README.md"
 license = { text = "MIT" }
 requires-python = ">=3.10"
 dependencies = ["mcp>=1.0.0,<2"]
-keywords = ["mcp", "emacs", "claude", "codex", "ai"]
+keywords = ["mcp", "emacs", "codex", "claude", "ai"]
 
 [project.scripts]
-claude-emacs = "claude_emacs.server:main"
+emacs-mcp-bridge = "emacs_mcp_bridge.server:main"
+claude-emacs = "emacs_mcp_bridge.server:main"
 
 [project.urls]
-Repository = "https://github.com/rolfmblindgren/claude-emacs"
+Repository = "https://github.com/rolfmblindgren/emacs-mcp-bridge"
 
 [tool.setuptools]
-packages = ["claude_emacs"]
+packages = ["emacs_mcp_bridge"]
 
 [tool.setuptools.package-dir]
-"claude_emacs" = "src"
+"emacs_mcp_bridge" = "src"

@@ -1,4 +1,4 @@
-# claude-emacs
+# Emacs MCP Bridge
 
 [![Python](https://img.shields.io/badge/python-3.10%2B-blue?logo=python&logoColor=white)](https://www.python.org/)
 [![MCP](https://img.shields.io/badge/MCP-server-blueviolet)](https://modelcontextprotocol.io)
@@ -28,8 +28,8 @@ emacsclient følger normalt Emacs-pakken på Fedora. På Mac må Emacs.app sin b
 Klon repoet til et sted du vil beholde det, og kjør installasjonsprogrammet:
 
 ~~~sh
-git clone https://github.com/rolfmblindgren/claude-emacs.git ~/src/claude-emacs
-cd ~/src/claude-emacs
+git clone https://github.com/rolfmblindgren/emacs-mcp-bridge.git ~/src/emacs-mcp-bridge
+cd ~/src/emacs-mcp-bridge
 ./install-codex.sh
 ~~~
 
@@ -40,14 +40,14 @@ Vil du registrere den selv, kan du opprette Python-miljøet og bruke en absolutt
 ~~~sh
 python3 -m venv .venv
 .venv/bin/python -m pip install -e .
-codex mcp add emacs -- "$PWD/.venv/bin/claude-emacs"
+codex mcp add emacs -- "$PWD/.venv/bin/emacs-mcp-bridge"
 ~~~
 
 Programmet kan også legges inn som en stdio-server i ~/.codex/config.toml:
 
 ~~~toml
 [mcp_servers.emacs]
-command = "/absolutt/sti/til/claude-emacs/.venv/bin/claude-emacs"
+command = "/absolutt/sti/til/emacs-mcp-bridge/.venv/bin/emacs-mcp-bridge"
 ~~~
 
 Denne Codex-konfigurasjonen brukes av Codex på samme maskin. Den gir ikke Codex tilgang til Emacs på en annen maskin over SSH.
@@ -61,7 +61,7 @@ Har du uv, kan du legge dette i ~/Library/Application Support/Claude/claude_desk
   "mcpServers": {
     "emacs": {
       "command": "uvx",
-      "args": ["--from", "git+https://github.com/rolfmblindgren/claude-emacs", "claude-emacs"]
+      "args": ["--from", "git+https://github.com/rolfmblindgren/emacs-mcp-bridge", "emacs-mcp-bridge"]
     }
   }
 }
@@ -82,10 +82,10 @@ Alternativt: klon repoet og kjør ./install.sh. Det eksisterende skriptet oppret
 | find_files | Søker etter filnavn |
 | eval_elisp | Evaluerer vilkårlig Elisp; av som standard |
 
-eval_elisp kan utføre alle operasjoner Emacs-brukeren har tilgang til. Den registreres bare når miljøvariabelen CLAUDE_EMACS_ENABLE_EVAL_ELISP=1 er satt for MCP-prosessen. I Codex kan den aktiveres ved å registrere serveren med denne kommandoen etter at en eventuell gammel emacs-oppføring er fjernet:
+eval_elisp kan utføre alle operasjoner Emacs-brukeren har tilgang til. Den registreres bare når miljøvariabelen EMACS_MCP_BRIDGE_ENABLE_EVAL_ELISP=1 er satt for MCP-prosessen. Det gamle navnet CLAUDE_EMACS_ENABLE_EVAL_ELISP støttes fortsatt. I Codex kan verktøyet aktiveres ved å registrere serveren med denne kommandoen etter at en eventuell gammel emacs-oppføring er fjernet:
 
 ~~~sh
-codex mcp add --env CLAUDE_EMACS_ENABLE_EVAL_ELISP=1 emacs -- /absolutt/sti/til/claude-emacs
+codex mcp add --env EMACS_MCP_BRIDGE_ENABLE_EVAL_ELISP=1 emacs -- /absolutt/sti/til/emacs-mcp-bridge/.venv/bin/emacs-mcp-bridge
 ~~~
 
 De andre skriveverktøyene kan også endre åpne filer. Kontroller agentens foreslåtte endringer før du lagrer.
