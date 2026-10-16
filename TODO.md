@@ -10,6 +10,7 @@
 - MCP-avhengigheten låst til versjon 1; versjon 2 bruker et annet server-API.
 - Isolert Fedora-test: Codex-registrering og MCP-samtale mot egen Emacs-instans.
 - Utkastet til Agensi-ferdighet validert som Codex-ferdighet.
+- Serveren omdøpt til Emacs MCP Bridge, med gamle kommandonavn fortsatt støttet.
 
 ## Gjenstår
 

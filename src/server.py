@@ -1,5 +1,5 @@
 """
-claude-emacs — lokal MCP-server som kobler AI-klienter til GNU Emacs.
+Emacs MCP Bridge — lokal MCP-server som kobler AI-klienter til GNU Emacs.
 
 Krever:
   - Emacs kjørende som server:  M-x server-start  (eller Emacs med --daemon)
@@ -266,7 +266,11 @@ def eval_elisp(expression: str) -> str:
     return elisp(expression)
 
 
-if os.environ.get("CLAUDE_EMACS_ENABLE_EVAL_ELISP", "").lower() in {"1", "true", "yes", "on"}:
+enable_eval_elisp = os.environ.get("EMACS_MCP_BRIDGE_ENABLE_EVAL_ELISP")
+if enable_eval_elisp is None:
+  enable_eval_elisp = os.environ.get("CLAUDE_EMACS_ENABLE_EVAL_ELISP", "")
+
+if enable_eval_elisp.lower() in {"1", "true", "yes", "on"}:
   mcp.tool()(eval_elisp)
 
 

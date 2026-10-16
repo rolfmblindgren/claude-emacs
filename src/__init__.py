@@ -1,1 +1,1 @@
-"""claude-emacs — MCP-server for GNU Emacs-integrasjon med Claude Desktop."""
+"""Emacs MCP Bridge — MCP-server for GNU Emacs og lokale AI-klienter."""

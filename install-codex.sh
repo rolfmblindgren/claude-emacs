@@ -19,7 +19,7 @@ fi
 
 python3 -m venv "$VENV"
 "$VENV/bin/python" -m pip install -e "$SCRIPT_DIR"
-codex mcp add emacs -- "$VENV/bin/claude-emacs"
+codex mcp add emacs -- "$VENV/bin/emacs-mcp-bridge"
 
 printf '\nFerdig. Start Codex på nytt, og kontroller at Emacs-serveren kjører med:\n'
 printf '  emacsclient --eval t\n'

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Installer claude-emacs lokalt og registrer den i Claude Desktop.
+# Installer Emacs MCP Bridge lokalt og registrer den i Claude Desktop.
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -10,7 +10,7 @@ echo "==> Oppretter virtuelt Python-miljø..."
 python3 -m venv "$VENV"
 "$VENV/bin/pip" install --quiet --upgrade pip
 "$VENV/bin/pip" install --quiet -e "$SCRIPT_DIR"
-echo "    OK: claude-emacs installert i $VENV"
+echo "    OK: Emacs MCP Bridge installert i $VENV"
 
 echo "==> Registrerer plugin i Claude Desktop..."
 mkdir -p "$(dirname "$CLAUDE_CONFIG")"
@@ -27,7 +27,7 @@ except (FileNotFoundError, json.JSONDecodeError):
 
 cfg.setdefault("mcpServers", {})
 cfg["mcpServers"]["emacs"] = {
-    "command": "$VENV/bin/claude-emacs"
+    "command": "$VENV/bin/emacs-mcp-bridge"
 }
 
 with open(config_path, "w") as f:
