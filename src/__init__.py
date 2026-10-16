@@ -1,1 +1,1 @@
-"""Emacs MCP Bridge — MCP-server for GNU Emacs og lokale AI-klienter."""
+"""Emacs MCP Bridge — MCP server for GNU Emacs and local AI clients."""

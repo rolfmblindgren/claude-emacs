@@ -1,18 +1,18 @@
 #!/usr/bin/env bash
-# Installer Emacs MCP Bridge lokalt og registrer den i Claude Desktop.
+# Install Emacs MCP Bridge locally and register it with Claude Desktop.
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 CLAUDE_CONFIG="$HOME/Library/Application Support/Claude/claude_desktop_config.json"
 VENV="$SCRIPT_DIR/.venv"
 
-echo "==> Oppretter virtuelt Python-miljø..."
+echo "==> Creating a Python virtual environment..."
 python3 -m venv "$VENV"
 "$VENV/bin/pip" install --quiet --upgrade pip
 "$VENV/bin/pip" install --quiet -e "$SCRIPT_DIR"
-echo "    OK: Emacs MCP Bridge installert i $VENV"
+echo "    OK: Emacs MCP Bridge installed in $VENV"
 
-echo "==> Registrerer plugin i Claude Desktop..."
+echo "==> Registering the MCP server with Claude Desktop..."
 mkdir -p "$(dirname "$CLAUDE_CONFIG")"
 
 python3 - <<PYEOF
@@ -34,13 +34,19 @@ with open(config_path, "w") as f:
     json.dump(cfg, f, indent=2, ensure_ascii=False)
     f.write("\n")
 
-print(f"    OK: {config_path} oppdatert")
+print(f"    OK: {config_path} updated")
 PYEOF
 
 echo ""
-echo "✅ Ferdig! Neste steg:"
-echo "   1. Start Emacs-server:  M-x server-start"
-echo "      (eller legg til dette i init.el:)"
+echo "✅ Done! Next steps:"
+echo "   1. Start the Emacs server:  M-x server-start"
+echo "      (or add this to init.el:)"
 echo "        (require 'server)"
 echo "        (unless (server-running-p) (server-start))"
-echo "   2. Start Claude Desktop på nytt"
+echo "   2. Restart Claude Desktop"
+
+
+# Local Variables:
+# mode: sh
+# sh-basic-offset: 2
+# End:

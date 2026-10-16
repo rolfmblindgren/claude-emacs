@@ -1,10 +1,10 @@
 """
-Emacs MCP Bridge — lokal MCP-server som kobler AI-klienter til GNU Emacs.
+Emacs MCP Bridge — a local MCP server connecting AI clients to GNU Emacs.
 
-Krever:
-  - Emacs kjørende som server:  M-x server-start  (eller Emacs med --daemon)
-  - emacsclient tilgjengelig i PATH
-  - Python-pakke: mcp  (pip install mcp)
+Requires:
+  - Emacs running as a server: M-x server-start (or Emacs with --daemon)
+  - emacsclient available in PATH
+  - Python package: mcp (pip install mcp)
 """
 
 import base64
@@ -16,52 +16,52 @@ from mcp.server.fastmcp import FastMCP
 mcp = FastMCP("emacs")
 
 
-# ── Hjelpefunksjoner ──────────────────────────────────────────────────────────
+# ── Helpers ───────────────────────────────────────────────────────────────────
 
 def emacsclient(*args: str) -> str:
-    """Kjør emacsclient med gitte argumenter og returner stdout."""
+    """Run emacsclient with the given arguments and return stdout."""
     cmd = ["emacsclient"] + list(args)
     try:
         result = subprocess.run(cmd, capture_output=True, text=True, timeout=10)
         if result.returncode != 0:
             err = result.stderr.strip() or result.stdout.strip()
-            raise RuntimeError(f"emacsclient feilet: {err}")
+            raise RuntimeError(f"emacsclient failed: {err}")
         return result.stdout.strip()
     except FileNotFoundError:
         raise RuntimeError(
-            "emacsclient ble ikke funnet. Installer Emacs og legg emacsclient i PATH."
+            "emacsclient was not found. Install Emacs and add emacsclient to PATH."
         )
     except subprocess.TimeoutExpired:
-        raise RuntimeError("emacsclient tidsavbrudd (10 s) — er Emacs server startet?")
+        raise RuntimeError("emacsclient timed out after 10 seconds. Is the Emacs server running?")
 
 
 def elisp(expr: str) -> str:
-    """Evaluer ett Elisp-uttrykk og returner resultatet."""
+    """Evaluate one Elisp expression and return its result."""
     return emacsclient("--eval", expr)
 
 
 def elisp_string(value: str) -> str:
-  """Lag et Elisp-uttrykk for vilkårlig UTF-8-tekst uten kodeinjeksjon."""
+  """Build an Elisp expression for arbitrary UTF-8 text without code injection."""
   encoded = base64.b64encode(value.encode("utf-8")).decode("ascii")
   return f'(decode-coding-string (base64-decode-string "{encoded}") \'utf-8)'
 
 
 def unquote(s: str) -> str:
     """
-    Strip Lisp-streng-anførselstegn og unescape vanlige sekvenser.
-    Håndterer også propertized strings på formatet #("tekst" 0 N (face ...) ...).
+    Strip Lisp string quotes and unescape common sequences.
+    Also handle propertized strings in the form #("text" 0 N (face ...) ...).
     """
-    # Propertized string — trekk ut bare strengdelen
+    # Propertized string — keep only the string portion.
     if s.startswith('#("'):
-        s = s[2:]  # strip #(  →  nå starter vi med "
-        # Finn slutten av strengen (første ikke-escaped ")
+        s = s[2:]  # Strip #(; the remainder now starts with ".
+        # Find the end of the string (the first unescaped ").
         i = 1
         while i < len(s):
             if s[i] == "\\" :
                 i += 2
                 continue
             if s[i] == '"':
-                s = s[: i + 1]  # behold bare "innhold"
+                s = s[: i + 1]  # Keep only "content".
                 break
             i += 1
 
@@ -71,43 +71,43 @@ def unquote(s: str) -> str:
     return s
 
 
-# ── Filer ─────────────────────────────────────────────────────────────────────
+# ── Files ─────────────────────────────────────────────────────────────────────
 
 @mcp.tool()
 def open_file(path: str) -> str:
     """
-    Åpne en fil i Emacs.
+    Open a file in Emacs.
 
     Args:
-        path: Absolutt eller relativ filsti (~ støttes).
+        path: Absolute or relative file path (~ is supported).
     """
     resolved = str(Path(path).expanduser().resolve())
     emacsclient("--no-wait", resolved)
-    return f"Åpnet {resolved} i Emacs."
+    return f"Opened {resolved} in Emacs."
 
 
 @mcp.tool()
 def open_file_at_line(path: str, line: int) -> str:
     """
-    Åpne en fil i Emacs og hopp til en bestemt linje.
-    Nyttig for feilmeldinger med filsti og linjenummer.
+    Open a file in Emacs and go to a specific line.
+    Useful for errors that include a file path and line number.
 
     Args:
-        path: Filsti.
-        line: Linjenummer (1-indeksert).
+        path: File path.
+        line: Line number (starting at 1).
     """
     resolved = str(Path(path).expanduser().resolve())
     emacsclient("--no-wait", f"+{line}", resolved)
-    return f"Åpnet {resolved} på linje {line}."
+    return f"Opened {resolved} at line {line}."
 
 
 @mcp.tool()
 def get_buffer_content(buffer_name: str = "") -> str:
     """
-    Hent hele innholdet i en Emacs-buffer.
+    Get the full contents of an Emacs buffer.
 
     Args:
-        buffer_name: Navn på buffer. Tom streng = gjeldende buffer.
+        buffer_name: Buffer name. Empty string means the current buffer.
     """
     if buffer_name:
         expr = (
@@ -122,11 +122,11 @@ def get_buffer_content(buffer_name: str = "") -> str:
 @mcp.tool()
 def write_to_buffer(content: str, buffer_name: str = "") -> str:
     """
-    Erstatt hele innholdet i en buffer med ny tekst.
+    Replace the entire contents of a buffer with new text.
 
     Args:
-        content:     Teksten som skal skrives.
-        buffer_name: Navn på buffer. Tom streng = gjeldende buffer.
+        content: Text to write.
+        buffer_name: Buffer name. Empty string means the current buffer.
     """
     content_expr = elisp_string(content)
     if buffer_name:
@@ -137,39 +137,39 @@ def write_to_buffer(content: str, buffer_name: str = "") -> str:
     else:
         expr = f'(progn (erase-buffer) (insert {content_expr}) nil)'
     elisp(expr)
-    return f"Innhold skrevet til {buffer_name or 'gjeldende buffer'}."
+    return f"Content written to {buffer_name or 'the current buffer'}."
 
 
 @mcp.tool()
 def save_buffer(buffer_name: str = "") -> str:
     """
-    Lagre en buffer til disk (tilsvarer C-x C-s).
+    Save a buffer to disk (equivalent to C-x C-s).
 
     Args:
-        buffer_name: Navn på buffer. Tom streng = gjeldende buffer.
+        buffer_name: Buffer name. Empty string means the current buffer.
     """
     if buffer_name:
         expr = f'(with-current-buffer {elisp_string(buffer_name)} (save-buffer) nil)'
     else:
         expr = "(save-buffer)"
     elisp(expr)
-    return f"{buffer_name or 'Gjeldende buffer'} lagret."
+    return f"{buffer_name or 'The current buffer'} was saved."
 
 
-# ── Navigasjon ────────────────────────────────────────────────────────────────
+# ── Navigation ────────────────────────────────────────────────────────────────
 
 @mcp.tool()
 def list_buffers() -> str:
     """
-    List alle åpne buffere i Emacs.
-    Returnerer en liste med (buffer-navn filsti) per buffer.
+    List all open buffers in Emacs.
+    Return one buffer name and file path per line.
     """
     expr = (
         "(mapconcat "
         "  (lambda (b) "
         "    (format \"%s\\t%s\" "
         "      (buffer-name b) "
-        "      (or (buffer-file-name b) \"<ingen fil>\"))) "
+        "      (or (buffer-file-name b) \"<no file>\"))) "
         "  (buffer-list) \"\\n\")"
     )
     return unquote(elisp(expr))
@@ -178,11 +178,11 @@ def list_buffers() -> str:
 @mcp.tool()
 def get_cursor_position() -> str:
     """
-    Hent gjeldende markørposisjon i aktiv buffer.
-    Returnerer linje, kolonne, tegn-offset og buffer-navn.
+    Get the cursor position in the current buffer.
+    Return the buffer name, line, column, and character offset.
     """
     expr = (
-        "(format \"Buffer: %s  Linje: %d  Kolonne: %d  Offset: %d\" "
+        "(format \"Buffer: %s  Line: %d  Column: %d  Offset: %d\" "
         "  (buffer-name) "
         "  (line-number-at-pos) "
         "  (current-column) "
@@ -194,53 +194,53 @@ def get_cursor_position() -> str:
 @mcp.tool()
 def goto_line(line: int, buffer_name: str = "") -> str:
     """
-    Hopp til en bestemt linje i Emacs.
+    Go to a specific line in Emacs.
 
     Args:
-        line:        Linjenummer (1-indeksert).
-        buffer_name: Navn på buffer. Tom streng = gjeldende buffer.
+        line: Line number (starting at 1).
+        buffer_name: Buffer name. Empty string means the current buffer.
     """
     if buffer_name:
         expr = f'(with-current-buffer {elisp_string(buffer_name)} (goto-line {line}) nil)'
     else:
         expr = f"(goto-line {line})"
     elisp(expr)
-    return f"Hoppet til linje {line} i {buffer_name or 'gjeldende buffer'}."
+    return f"Moved to line {line} in {buffer_name or 'the current buffer'}."
 
 
-# ── Region / utklippstavle ────────────────────────────────────────────────────
+# ── Selection ─────────────────────────────────────────────────────────────────
 
 @mcp.tool()
 def get_selected_text() -> str:
-    """Hent teksten som er markert (region) i gjeldende buffer."""
+    """Get selected text (the region) in the current buffer."""
     expr = (
         "(if (use-region-p) "
         "    (buffer-substring-no-properties (region-beginning) (region-end)) "
         '    "")'
     )
     result = unquote(elisp(expr))
-    return result or "(ingen tekst markert)"
+    return result or "(no text selected)"
 
 
 @mcp.tool()
 def insert_at_cursor(text: str) -> str:
     """
-    Sett inn tekst ved gjeldende markørposisjon i aktiv buffer.
+    Insert text at the cursor in the current buffer.
 
     Args:
-        text: Teksten som skal settes inn.
+        text: Text to insert.
     """
     elisp(f'(insert {elisp_string(text)})')
-    return "Tekst satt inn ved markøren."
+    return "Text inserted at the cursor."
 
 
 @mcp.tool()
 def replace_selected_text(replacement: str) -> str:
     """
-    Erstatt markert tekst (region) med ny tekst.
+    Replace selected text (the region) with new text.
 
     Args:
-        replacement: Teksten som erstatter markeringen.
+        replacement: Text to insert in place of the selection.
     """
     expr = (
         f'(if (use-region-p) '
@@ -250,18 +250,18 @@ def replace_selected_text(replacement: str) -> str:
     )
     result = elisp(expr)
     if result == "nil":
-        return "Ingen tekst er markert — ingenting ble erstattet."
-    return "Markert tekst erstattet."
+        return "No text is selected; nothing was replaced."
+    return "Selected text replaced."
 
 
 # ── Elisp ─────────────────────────────────────────────────────────────────────
 
 def eval_elisp(expression: str) -> str:
     """
-    Evaluer et vilkårlig Elisp-uttrykk i Emacs og returner resultatet.
+    Evaluate an arbitrary Elisp expression in Emacs and return its result.
 
     Args:
-        expression: Gyldig Elisp, f.eks. '(+ 1 2)' eller '(buffer-name)'.
+        expression: Valid Elisp, such as '(+ 1 2)' or '(buffer-name)'.
     """
     return elisp(expression)
 
@@ -274,16 +274,16 @@ if enable_eval_elisp.lower() in {"1", "true", "yes", "on"}:
   mcp.tool()(eval_elisp)
 
 
-# ── Prosjekt / søk ────────────────────────────────────────────────────────────
+# ── Project search ────────────────────────────────────────────────────────────
 
 @mcp.tool()
 def find_files(pattern: str, directory: str = ".") -> str:
     """
-    Søk etter filer med et navn-mønster under en mappe.
+    Find files matching a name pattern beneath a directory.
 
     Args:
-        pattern:   Filnavn-mønster, f.eks. '*.py' eller 'README*'.
-        directory: Rotmappe for søket. Standard = gjeldende arbeidsmappe.
+        pattern: File name pattern, such as '*.py' or 'README*'.
+        directory: Search root. Defaults to the current working directory.
     """
     resolved = str(Path(directory).expanduser().resolve())
     result = subprocess.run(
@@ -293,7 +293,7 @@ def find_files(pattern: str, directory: str = ".") -> str:
         timeout=15,
     )
     files = result.stdout.strip()
-    return files or f"Ingen filer matchet '{pattern}' under {resolved}."
+    return files or f"No files matched '{pattern}' under {resolved}."
 
 
 # ── Start ─────────────────────────────────────────────────────────────────────

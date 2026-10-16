@@ -1,20 +1,22 @@
-# Videre arbeid
+# Further work
 
-## Ferdig
+## Done
 
-- Egen dev-gren og oppgavegren for Fedora/Codex-arbeidet.
-- Lokal Codex-installasjon dokumentert og eget installasjonsskript lagt til.
-- eval_elisp gjort valgfritt og tekstparametere skjermet mot Elisp-injeksjon.
-- MIT-lisens lagt i repoet.
-- Separat utkast til Agensi-ferdighet laget for vurdering før publisering.
-- MCP-avhengigheten låst til versjon 1; versjon 2 bruker et annet server-API.
-- Isolert Fedora-test: Codex-registrering og MCP-samtale mot egen Emacs-instans.
-- Utkastet til Agensi-ferdighet validert som Codex-ferdighet.
-- Serveren omdøpt til Emacs MCP Bridge, med gamle kommandonavn fortsatt støttet.
+- Created a `dev` branch and a task branch for the Fedora/Codex work.
+- Documented local Codex setup and added an installer.
+- Made `eval_elisp` optional and protected text arguments against Elisp injection.
+- Added the MIT license to the repository.
+- Prepared a separate Agensi skill draft for review before publication.
+- Kept the MCP dependency on version 1; version 2 uses a different server API.
+- Checked Codex registration and an MCP exchange with an isolated Emacs instance on Fedora.
+- Validated the Agensi skill draft as a Codex skill.
+- Renamed the server Emacs MCP Bridge while keeping the old command available.
+- Translated public documentation, installer messages, and MCP tool text into English.
 
-## Gjenstår
+## To do
 
-- Prøve installasjonsflyten i en helt ren Fedora-brukerprofil og i Claude Desktop på Mac.
-- Vurdere bedre håndtering av aktiv buffer når ingen buffernavn er oppgitt.
-- Vurdere mer robust dekoding av Emacs-resultater med kontrolltegn.
-- Før eventuell Agensi-publisering: prøv ferdigheten med reelle oppgaver, og skriv salgsbeskrivelse som tydelig skiller ferdigheten fra MIT-serveren.
+- Try the installation flow with a fresh Fedora user profile and with Claude Desktop on macOS.
+- Consider better handling of the active buffer when no buffer name is supplied.
+- Consider more robust decoding of Emacs results containing control characters.
+- Before publishing on Agensi, try the skill on real tasks and write a listing that clearly separates the paid skill from the free MIT server.
+
