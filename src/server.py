@@ -1,5 +1,5 @@
 """
-claude-emacs — MCP-server som integrerer Claude Desktop med GNU Emacs (Mac).
+claude-emacs — lokal MCP-server som kobler AI-klienter til GNU Emacs.
 
 Krever:
   - Emacs kjørende som server:  M-x server-start  (eller Emacs med --daemon)
@@ -7,6 +7,8 @@ Krever:
   - Python-pakke: mcp  (pip install mcp)
 """
 
+import base64
+import os
 import subprocess
 from pathlib import Path
 from mcp.server.fastmcp import FastMCP
@@ -27,8 +29,7 @@ def emacsclient(*args: str) -> str:
         return result.stdout.strip()
     except FileNotFoundError:
         raise RuntimeError(
-            "emacsclient ble ikke funnet. Legg Emacs i PATH, f.eks.:\n"
-            "  export PATH=/Applications/Emacs.app/Contents/MacOS/bin:$PATH"
+            "emacsclient ble ikke funnet. Installer Emacs og legg emacsclient i PATH."
         )
     except subprocess.TimeoutExpired:
         raise RuntimeError("emacsclient tidsavbrudd (10 s) — er Emacs server startet?")
@@ -37,6 +38,12 @@ def emacsclient(*args: str) -> str:
 def elisp(expr: str) -> str:
     """Evaluer ett Elisp-uttrykk og returner resultatet."""
     return emacsclient("--eval", expr)
+
+
+def elisp_string(value: str) -> str:
+  """Lag et Elisp-uttrykk for vilkårlig UTF-8-tekst uten kodeinjeksjon."""
+  encoded = base64.b64encode(value.encode("utf-8")).decode("ascii")
+  return f'(decode-coding-string (base64-decode-string "{encoded}") \'utf-8)'
 
 
 def unquote(s: str) -> str:
@@ -104,7 +111,7 @@ def get_buffer_content(buffer_name: str = "") -> str:
     """
     if buffer_name:
         expr = (
-            f'(with-current-buffer "{buffer_name}" '
+            f'(with-current-buffer {elisp_string(buffer_name)} '
             f"(buffer-substring-no-properties (point-min) (point-max)))"
         )
     else:
@@ -121,14 +128,14 @@ def write_to_buffer(content: str, buffer_name: str = "") -> str:
         content:     Teksten som skal skrives.
         buffer_name: Navn på buffer. Tom streng = gjeldende buffer.
     """
-    escaped = content.replace("\\", "\\\\").replace('"', '\\"').replace("\n", "\\n")
+    content_expr = elisp_string(content)
     if buffer_name:
         expr = (
-            f'(with-current-buffer "{buffer_name}" '
-            f'(erase-buffer) (insert "{escaped}") nil)'
+            f'(with-current-buffer {elisp_string(buffer_name)} '
+            f'(erase-buffer) (insert {content_expr}) nil)'
         )
     else:
-        expr = f'(progn (erase-buffer) (insert "{escaped}") nil)'
+        expr = f'(progn (erase-buffer) (insert {content_expr}) nil)'
     elisp(expr)
     return f"Innhold skrevet til {buffer_name or 'gjeldende buffer'}."
 
@@ -142,7 +149,7 @@ def save_buffer(buffer_name: str = "") -> str:
         buffer_name: Navn på buffer. Tom streng = gjeldende buffer.
     """
     if buffer_name:
-        expr = f'(with-current-buffer "{buffer_name}" (save-buffer) nil)'
+        expr = f'(with-current-buffer {elisp_string(buffer_name)} (save-buffer) nil)'
     else:
         expr = "(save-buffer)"
     elisp(expr)
@@ -194,7 +201,7 @@ def goto_line(line: int, buffer_name: str = "") -> str:
         buffer_name: Navn på buffer. Tom streng = gjeldende buffer.
     """
     if buffer_name:
-        expr = f'(with-current-buffer "{buffer_name}" (goto-line {line}) nil)'
+        expr = f'(with-current-buffer {elisp_string(buffer_name)} (goto-line {line}) nil)'
     else:
         expr = f"(goto-line {line})"
     elisp(expr)
@@ -223,8 +230,7 @@ def insert_at_cursor(text: str) -> str:
     Args:
         text: Teksten som skal settes inn.
     """
-    escaped = text.replace("\\", "\\\\").replace('"', '\\"').replace("\n", "\\n")
-    elisp(f'(insert "{escaped}")')
+    elisp(f'(insert {elisp_string(text)})')
     return "Tekst satt inn ved markøren."
 
 
@@ -236,11 +242,10 @@ def replace_selected_text(replacement: str) -> str:
     Args:
         replacement: Teksten som erstatter markeringen.
     """
-    escaped = replacement.replace("\\", "\\\\").replace('"', '\\"').replace("\n", "\\n")
     expr = (
         f'(if (use-region-p) '
         f'  (progn (delete-region (region-beginning) (region-end)) '
-        f'         (insert "{escaped}") t) '
+        f'         (insert {elisp_string(replacement)}) t) '
         f'  nil)'
     )
     result = elisp(expr)
@@ -251,7 +256,6 @@ def replace_selected_text(replacement: str) -> str:
 
 # ── Elisp ─────────────────────────────────────────────────────────────────────
 
-@mcp.tool()
 def eval_elisp(expression: str) -> str:
     """
     Evaluer et vilkårlig Elisp-uttrykk i Emacs og returner resultatet.
@@ -260,6 +264,10 @@ def eval_elisp(expression: str) -> str:
         expression: Gyldig Elisp, f.eks. '(+ 1 2)' eller '(buffer-name)'.
     """
     return elisp(expression)
+
+
+if os.environ.get("CLAUDE_EMACS_ENABLE_EVAL_ELISP", "").lower() in {"1", "true", "yes", "on"}:
+  mcp.tool()(eval_elisp)
 
 
 # ── Prosjekt / søk ────────────────────────────────────────────────────────────

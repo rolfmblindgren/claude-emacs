@@ -1,21 +1,62 @@
 # claude-emacs
 
 [![Python](https://img.shields.io/badge/python-3.10%2B-blue?logo=python&logoColor=white)](https://www.python.org/)
-[![MCP](https://img.shields.io/badge/MCP-server-blueviolet?logo=anthropic&logoColor=white)](https://modelcontextprotocol.io)
+[![MCP](https://img.shields.io/badge/MCP-server-blueviolet)](https://modelcontextprotocol.io)
 [![Emacs](https://img.shields.io/badge/GNU%20Emacs-29%2B-7F5AB6?logo=gnuemacs&logoColor=white)](https://www.gnu.org/software/emacs/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
-[![Platform](https://img.shields.io/badge/platform-macOS%20%7C%20maybe%20others-lightgrey)](https://github.com/rolfmblindgren/claude-emacs)
-[![Built with Claude](https://img.shields.io/badge/built%20with-Claude-orange?logo=anthropic&logoColor=white)](https://claude.ai)
 
-MCP-server som kobler [Claude Desktop](https://claude.ai/download) til GNU Emacs på Mac via `emacsclient`.
+En lokal MCP-server som lar Codex eller Claude Desktop arbeide med GNU Emacs gjennom emacsclient. MCP-klienten starter Python-programmet ved behov. Det kjører ikke som en nettverkstjeneste på Grendel.
 
-## Installasjon
+Dette er en annen forbindelse enn claude-code-ide.el: Den Emacs-pakken lar Claude Code i Emacs bruke en MCP-server startet av Emacs. Her går forbindelsen motsatt vei, fra en ekstern MCP-klient til Emacs.
 
-### Alternativ 1 — uvx (anbefalt, ingen installasjon)
+## Før du begynner
 
-Legg til i `~/Library/Application Support/Claude/claude_desktop_config.json`:
+- Python 3.10 eller nyere, Git og emacsclient.
+- Emacs må kjøre som server på **samme maskin** som MCP-programmet. Sjekk med emacsclient --eval t; svaret skal være t.
+- Start serveren fra Emacs med M-x server-start, eller legg dette i Emacs-oppsettet:
 
-```json
+  ~~~elisp
+  (require 'server)
+  (unless (server-running-p)
+    (server-start))
+  ~~~
+
+emacsclient følger normalt Emacs-pakken på Fedora. På Mac må Emacs.app sin bin-mappe eventuelt legges i PATH for programmet som starter MCP-serveren.
+
+## Codex på Fedora
+
+Klon repoet til et sted du vil beholde det, og kjør installasjonsprogrammet:
+
+~~~sh
+git clone https://github.com/rolfmblindgren/claude-emacs.git ~/src/claude-emacs
+cd ~/src/claude-emacs
+./install-codex.sh
+~~~
+
+Skriptet lager .venv, installerer Python-pakken og registrerer en lokal stdio-server med navnet emacs i Codex. Det stanser dersom navnet allerede finnes, slik at et eksisterende oppsett ikke overskrives. Start Codex på nytt etterpå.
+
+Vil du registrere den selv, kan du opprette Python-miljøet og bruke en absolutt sti:
+
+~~~sh
+python3 -m venv .venv
+.venv/bin/python -m pip install -e .
+codex mcp add emacs -- "$PWD/.venv/bin/claude-emacs"
+~~~
+
+Programmet kan også legges inn som en stdio-server i ~/.codex/config.toml:
+
+~~~toml
+[mcp_servers.emacs]
+command = "/absolutt/sti/til/claude-emacs/.venv/bin/claude-emacs"
+~~~
+
+Denne Codex-konfigurasjonen brukes av Codex på samme maskin. Den gir ikke Codex tilgang til Emacs på en annen maskin over SSH.
+
+## Claude Desktop på Mac
+
+Har du uv, kan du legge dette i ~/Library/Application Support/Claude/claude_desktop_config.json:
+
+~~~json
 {
   "mcpServers": {
     "emacs": {
@@ -24,76 +65,43 @@ Legg til i `~/Library/Application Support/Claude/claude_desktop_config.json`:
     }
   }
 }
-```
+~~~
 
-`uvx` henter og kjører pakken automatisk. Krever at [uv er installert](https://docs.astral.sh/uv/getting-started/installation/):
+Alternativt: klon repoet og kjør ./install.sh. Det eksisterende skriptet oppretter et Python-miljø og registrerer serveren i Claude Desktop. Start Claude Desktop på nytt etterpå.
 
-```sh
-curl -LsSf https://astral.sh/uv/install.sh | sh
-```
+## Tilgjengelige MCP-verktøy
 
-### Alternativ 2 — pipx
+| Verktøy | Hva det gjør |
+|---|---|
+| open_file, open_file_at_line | Åpner fil i Emacs, eventuelt på en bestemt linje |
+| get_buffer_content, list_buffers | Leser buffere |
+| get_cursor_position, goto_line | Leser eller endrer markørposisjon |
+| get_selected_text | Leser markert tekst |
+| insert_at_cursor, replace_selected_text, write_to_buffer | Endrer buffertekst |
+| save_buffer | Lagrer en buffer |
+| find_files | Søker etter filnavn |
+| eval_elisp | Evaluerer vilkårlig Elisp; av som standard |
 
-```sh
-pipx install git+https://github.com/rolfmblindgren/claude-emacs
-```
+eval_elisp kan utføre alle operasjoner Emacs-brukeren har tilgang til. Den registreres bare når miljøvariabelen CLAUDE_EMACS_ENABLE_EVAL_ELISP=1 er satt for MCP-prosessen. I Codex kan den aktiveres ved å registrere serveren med denne kommandoen etter at en eventuell gammel emacs-oppføring er fjernet:
 
-Legg til i `claude_desktop_config.json`:
+~~~sh
+codex mcp add --env CLAUDE_EMACS_ENABLE_EVAL_ELISP=1 emacs -- /absolutt/sti/til/claude-emacs
+~~~
 
-```json
-{
-  "mcpServers": {
-    "emacs": {
-      "command": "claude-emacs"
-    }
-  }
-}
-```
+De andre skriveverktøyene kan også endre åpne filer. Kontroller agentens foreslåtte endringer før du lagrer.
 
-### Alternativ 3 — manuelt (klon + venv)
+## Agentferdigheter
 
-```sh
-git clone https://github.com/rolfmblindgren/claude-emacs ~/src/claude-emacs
-cd ~/src/claude-emacs
-./install.sh
-```
-
-## Emacs-oppsett
-
-Legg til i `init.el` for automatisk serverstart:
-
-```elisp
-(require 'server)
-(unless (server-running-p)
-  (server-start))
-```
-
-Sørg for at `emacsclient` er i PATH (f.eks. i `~/.zshrc`):
-
-```sh
-export PATH="/Applications/Emacs.app/Contents/MacOS/bin:$PATH"
-```
-
-Start Claude Desktop på nytt etter konfigurasjonsendringer.
-
-## Verktøy
-
-| Verktøy | Beskrivelse |
-|---------|-------------|
-| `open_file` | Åpne en fil i Emacs |
-| `open_file_at_line` | Åpne fil og hopp til linje |
-| `get_buffer_content` | Hent innholdet i en buffer |
-| `write_to_buffer` | Skriv ny tekst til en buffer |
-| `save_buffer` | Lagre buffer til disk (C-x C-s) |
-| `list_buffers` | List alle åpne buffere |
-| `get_cursor_position` | Hent linje/kolonne/offset |
-| `goto_line` | Hopp til en linje |
-| `get_selected_text` | Hent markert tekst (region) |
-| `insert_at_cursor` | Sett inn tekst ved markøren |
-| `replace_selected_text` | Erstatt markert tekst |
-| `eval_elisp` | Evaluer et Elisp-uttrykk |
-| `find_files` | Søk etter filer med navn-mønster |
+En SKILL.md kan beskrive hvordan en agent bør bruke MCP-verktøyene, men installerer ikke serveren. Brukeren må først ha Emacs-serveren og MCP-programmet på sin egen maskin. Denne Python-serveren er åpen kildekode under MIT-lisensen.
 
 ## Lisens
 
-MIT
+MIT. Se [LICENSE](LICENSE).
+
+## Coda
+
+From prompt to page, a thought can find its place.  
+The cursor moves with patient, measured grace.  
+Through open buffers, words return to view.  
+And Emacs keeps the work both clear and true.  
+
