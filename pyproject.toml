@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "emacs-mcp-bridge"
 version = "0.1.0"
-description = "Lokal MCP-server som kobler AI-klienter til GNU Emacs"
+description = "Local MCP server connecting AI clients to GNU Emacs"
 readme = "README.md"
 license = { text = "MIT" }
 requires-python = ">=3.10"
