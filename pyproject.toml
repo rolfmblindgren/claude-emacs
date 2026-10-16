@@ -5,12 +5,12 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "claude-emacs"
 version = "0.1.0"
-description = "MCP-server for GNU Emacs-integrasjon med Claude Desktop"
+description = "Lokal MCP-server som kobler AI-klienter til GNU Emacs"
 readme = "README.md"
 license = { text = "MIT" }
 requires-python = ">=3.10"
 dependencies = ["mcp>=1.0.0"]
-keywords = ["mcp", "emacs", "claude", "ai"]
+keywords = ["mcp", "emacs", "claude", "codex", "ai"]
 
 [project.scripts]
 claude-emacs = "claude_emacs.server:main"
